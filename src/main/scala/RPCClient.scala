@@ -38,13 +38,14 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Bitcoin] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Bitcoin(client)
   }
 
@@ -53,13 +54,14 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Ethereum] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Ethereum(client)
   }
 
@@ -68,13 +70,14 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Omni] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Omni(client)
   }
 
@@ -88,7 +91,7 @@ object RPCClient {
         .withRequestTimeout(2.minutes)
         .resource
       socket <- ZeroMQ.socket(
-        config.hosts.head,
+        config.zmqHost.getOrElse("localhost"),
         config.zmqPort.getOrElse(28332)
       )
     } yield new RPCClient(client, socket, config, onErrorRetry)
@@ -126,9 +129,9 @@ class RPCClient (
       host: String,
       request: A
   ): IO[Request[IO]] = {
-    val uri = Uri
+    val uri = Uri.fromString(host).getOrElse(Uri
       .fromString(s"http://${host}:${config.port.getOrElse(8332)}")
-      .getOrElse(throw new Exception("Could not parse URL"))
+      .getOrElse(throw new Exception("Could not parse URL")))
     (config.username, config.password) match {
       case (Some(user), Some(pass)) =>
         POST(
