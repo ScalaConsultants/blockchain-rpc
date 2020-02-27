@@ -72,10 +72,17 @@ sealed trait Blockchain
 case class Ethereum(client: RPCClient) extends Blockchain
 case class Bitcoin(client: RPCClient) extends Blockchain
 case class Omni(client: RPCClient) extends Blockchain
+case class Tezos(client: RPCClient, apiKey: String) extends Blockchain
 
 object OmniMethods {
   trait ListBlockTransactions {
     def listBlockTransactions(omni: Omni, height: Long): IO[Seq[String]]
+  }
+}
+
+object TezosMethods {
+  trait GetTransactionsByBlockHeight[A <: Blockchain, B] {
+    def getTransactions(a: A, blockHeight: Long): IO[B]
   }
 }
 
