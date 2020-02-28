@@ -81,7 +81,10 @@ object Instances {
     override def getBestBlockHash(tezos: Tezos): IO[String] =
       for {
         json <- tezos.client
-          .getJson[BestBlockLevelRequest](new BestBlockLevelRequest, Some("/v2/data/tezos/mainnet/blocks/head"), Headers.of(Header("apiKey", tezos.apiKey)))
+          .getJson[BestBlockLevelRequest](
+            new BestBlockLevelRequest, Some("/v2/data/tezos/mainnet/blocks/head"),
+            Headers.of(Header("apiKey", tezos.apiKey))
+          )
       } yield json.asObject.get("hash").get.asString.get
   }
 
@@ -89,7 +92,11 @@ object Instances {
     override def getBestBlockHeight(tezos: Tezos): IO[Long] =
       for {
         json <- tezos.client
-          .getJson[BestBlockLevelRequest](new BestBlockLevelRequest, Some("/v2/data/tezos/mainnet/blocks/head"), Headers.of(Header("apiKey", tezos.apiKey)))
+          .getJson[BestBlockLevelRequest](
+            new BestBlockLevelRequest,
+            Some("/v2/data/tezos/mainnet/blocks/head"),
+            Headers.of(Header("apiKey", tezos.apiKey))
+          )
       } yield json.asObject.get("level").get.asNumber.get.toLong.get
   }
 
@@ -99,7 +106,11 @@ object Instances {
           tezos: Tezos,
           hash: String
       ): IO[BlockResponse] = {
-        tezos.client.get[BlockRequest, BlockResponse](BlockRequest(), Some(s"/v2/data/tezos/mainnet/blocks/$hash"), Headers.of(Header("apiKey", tezos.apiKey)))
+        tezos.client.get[BlockRequest, BlockResponse](
+          BlockRequest(),
+          Some(s"/v2/data/tezos/mainnet/blocks/$hash"),
+          Headers.of(Header("apiKey", tezos.apiKey))
+        )
       }
     }
 
