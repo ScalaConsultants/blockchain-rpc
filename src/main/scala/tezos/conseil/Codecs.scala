@@ -1,11 +1,10 @@
 package io.tokenanalyst.blockchainrpc.tezos.conseil
 
 import io.circe.{HCursor, Json}
-import io.circe.generic.semiauto._
 import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol.QueryApi.{LongPredicate, OrderBy, OrderPredicate, Predicate, StringPredicate}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.auto._
-import io.circe.generic.extras.semiauto.deriveDecoder
+import io.circe.generic.extras.semiauto._
 import io.circe.generic.extras._, io.circe.syntax._
 import io.tokenanalyst.blockchainrpc.RPCEncoder
 import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol._
