@@ -5,15 +5,23 @@ import io.circe.generic.semiauto._
 import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol.QueryApi.{LongPredicate, OrderBy, OrderPredicate, Predicate, StringPredicate}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.auto._
-import io.circe.syntax._
+import io.circe.generic.extras.semiauto.deriveDecoder
+import io.circe.generic.extras._, io.circe.syntax._
 import io.tokenanalyst.blockchainrpc.RPCEncoder
 import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol._
 
 object Codecs {
 
-  implicit def derivedBlockDecoder[A <: BlockResponse: Decoder] = new Decoder[A] {
-    def apply(a: HCursor): Decoder.Result[A] = a.downField("block").as[A]
+  implicit val customConfig: Configuration = Configuration.default.withSnakeCaseMemberNames
+  val derivedBlockDecoderSnakeCase: Decoder[BlockResponse] = deriveDecoder[BlockResponse]
+
+  def derivedBlockDecoder[A <: BlockResponse: Decoder] = new Decoder[A] {
+    def apply(a: HCursor): Decoder.Result[A] = {
+      a.downField("block").as[A]
+    }
   }
+
+  implicit val blockDecoder: Decoder[BlockResponse] = derivedBlockDecoderSnakeCase or derivedBlockDecoder
 
   implicit def derivedTransactionDecoder[A <: TransactionResponse: Decoder] = new Decoder[A] {
     def apply(a: HCursor): Decoder.Result[A] = a.as[A]
@@ -41,6 +49,16 @@ object Codecs {
             StringPredicate("status", "eq", Seq("applied"), false)
           ),
           orderBy = Some(OrderBy(Seq(OrderPredicate("block_level", "desc"))))).asJson
+      }
+    }
+
+  implicit val blockbyLevelRequest =
+    new RPCEncoder[BlockByLevelRequest] {
+      final def apply(a: BlockByLevelRequest): Json = {
+        QueryApi.Query(
+          predicates = List(
+            LongPredicate("level", "eq", Seq(a.level), false)
+          )).asJson
       }
     }
 

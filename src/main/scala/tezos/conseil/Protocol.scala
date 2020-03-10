@@ -91,6 +91,7 @@ object Protocol {
   case class TransactionRequest(hash: String) extends RPCRequest
   case class BestBlockLevelRequest() extends RPCRequest
   case class BlockRequest() extends RPCRequest
+  case class BlockByLevelRequest(level: Long) extends RPCRequest
   case class BlockHashRequest(height: Long) extends RPCRequest
 
 }

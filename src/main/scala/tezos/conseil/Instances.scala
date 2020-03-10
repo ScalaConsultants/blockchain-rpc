@@ -69,14 +69,6 @@ object Instances {
         } yield res
     }
 
-  implicit val getBlockHashInstance = new GetBlockHash[Tezos] {
-    override def getBlockHash(a: Tezos, height: Long): IO[String] =
-      for {
-        json <- a.client
-          .postJson[BlockHashRequest](BlockHashRequest(height))
-      } yield json.asObject.get("result").get.asString.get
-  }
-
   implicit val getBestBlockHashInstance = new GetBestBlockHash[Tezos] {
     override def getBestBlockHash(tezos: Tezos): IO[String] =
       for {
@@ -120,9 +112,10 @@ object Instances {
           tezos: Tezos,
           height: Long
       ): IO[BlockResponse] =
-        for {
-          hash <- getBlockHashInstance.getBlockHash(tezos, height)
-          data <- getBlockByHashInstance.getBlockByHash(tezos, hash)
-        } yield data
+        tezos.client.post[BlockByLevelRequest, BatchResponse[BlockResponse]](
+          BlockByLevelRequest(height),
+          Some(s"/v2/data/tezos/mainnet/blocks"),
+          Headers.of(Header("apiKey", tezos.apiKey))
+        ).map(_.seq.head)
     }
 }
