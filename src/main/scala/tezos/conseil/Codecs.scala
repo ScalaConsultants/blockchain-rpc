@@ -12,7 +12,7 @@ import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol._
 object Codecs {
 
   implicit val customConfig: Configuration = Configuration.default.withSnakeCaseMemberNames
-  val derivedBlockDecoderSnakeCase: Decoder[BlockResponse] = deriveDecoder[BlockResponse]
+  val derivedBlockDecoderSnakeCase: Decoder[BlockResponse] = deriveConfiguredDecoder[BlockResponse]
 
   def derivedBlockDecoder[A <: BlockResponse: Decoder] = new Decoder[A] {
     def apply(a: HCursor): Decoder.Result[A] = {
@@ -26,7 +26,7 @@ object Codecs {
     def apply(a: HCursor): Decoder.Result[A] = a.as[A]
   }
 
-  implicit val queryEncoder: Encoder[QueryApi.Query] = deriveEncoder[QueryApi.Query]
+  implicit val queryEncoder: Encoder[QueryApi.Query] = deriveConfiguredEncoder[QueryApi.Query]
   implicit val predicateEncoder: Encoder[Predicate] = Encoder.instance {
     case stringPredicate @ StringPredicate(_, _, _, _) => stringPredicate.asJson
     case longPredicate @ LongPredicate(_, _, _, _) => longPredicate.asJson

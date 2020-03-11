@@ -66,8 +66,8 @@ pomExtra :=
       </developer>
     </developers>
 
-val http4sVersion = "0.21.0-M5"
-val circeVersion = "0.12.0-M4"
+val http4sVersion = "0.21.1"
+val circeVersion = "0.13.0"
 val scalaTestVersion = "3.1.0"
 
 lazy val http4s = Seq(

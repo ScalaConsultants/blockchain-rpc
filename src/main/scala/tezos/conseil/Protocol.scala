@@ -73,7 +73,7 @@ object Protocol {
       operationsHash: String,
       periodKind: String,
       currentExpectedQuorum: Int,
-      activeProposal: String,
+      activeProposal: Option[String],
       baker: String,
       consumedGas: Int,
       metaLevel: Long,
