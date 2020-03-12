@@ -3,7 +3,7 @@ package io.tokenanalyst.blockchainrpc.tezos.conseil
 import io.circe.{HCursor, Json}
 import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol.QueryApi.{LongPredicate, OrderBy, OrderPredicate, Predicate, StringPredicate}
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto._
+import io.circe.generic.extras.auto._
 import io.circe.generic.extras.semiauto._
 import io.circe.generic.extras._, io.circe.syntax._
 import io.tokenanalyst.blockchainrpc.RPCEncoder
@@ -11,16 +11,14 @@ import io.tokenanalyst.blockchainrpc.tezos.conseil.Protocol._
 
 object Codecs {
 
-  implicit val customConfig: Configuration = Configuration.default.withSnakeCaseMemberNames
-  val derivedBlockDecoderSnakeCase: Decoder[BlockResponse] = deriveConfiguredDecoder[BlockResponse]
-
-  def derivedBlockDecoder[A <: BlockResponse: Decoder] = new Decoder[A] {
+  implicit def derivedBlockDecoder[A <: ExtendedBlockResponse: Decoder] = new Decoder[A] {
     def apply(a: HCursor): Decoder.Result[A] = {
       a.downField("block").as[A]
     }
   }
 
-  implicit val blockDecoder: Decoder[BlockResponse] = derivedBlockDecoderSnakeCase or derivedBlockDecoder
+  implicit val customConfig: Configuration = Configuration.default.withSnakeCaseMemberNames
+  implicit val derivedBlockDecoderSnakeCase: Decoder[BlockResponse] = deriveConfiguredDecoder[BlockResponse]
 
   implicit def derivedTransactionDecoder[A <: TransactionResponse: Decoder] = new Decoder[A] {
     def apply(a: HCursor): Decoder.Result[A] = a.as[A]

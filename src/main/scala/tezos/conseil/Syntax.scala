@@ -34,6 +34,6 @@ object Syntax {
       implicitly[GetBestBlockHeight[Tezos]].getBestBlockHeight(tezos)
 
     def getBlockByHash(hash: String) =
-      implicitly[GetBlockByHash[Tezos, BlockResponse]].getBlockByHash(tezos, hash)
+      implicitly[GetBlockByHash[Tezos, ExtendedBlockResponse]].getBlockByHash(tezos, hash)
   }
 }

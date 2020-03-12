@@ -93,12 +93,12 @@ object Instances {
   }
 
   implicit val getBlockByHashInstance =
-    new GetBlockByHash[Tezos, BlockResponse] {
+    new GetBlockByHash[Tezos, ExtendedBlockResponse] {
       override def getBlockByHash(
           tezos: Tezos,
           hash: String
-      ): IO[BlockResponse] = {
-        tezos.client.get[BlockRequest, BlockResponse](
+      ): IO[ExtendedBlockResponse] = {
+        tezos.client.get[BlockRequest, ExtendedBlockResponse](
           BlockRequest(),
           Some(s"/v2/data/tezos/mainnet/blocks/$hash"),
           Headers.of(Header("apiKey", tezos.apiKey))

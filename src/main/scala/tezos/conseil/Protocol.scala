@@ -86,6 +86,34 @@ object Protocol {
       priority: Int
   ) extends RPCResponse
 
+  case class ExtendedBlockResponse(
+      level: Long,
+      proto: Int,
+      predecessor: Option[String],
+      timestamp: Long,
+      validationPass: Int,
+      fitness: String,
+      context: String,
+      signature: String,
+      protocol: String,
+      chainId: String,
+      hash: String,
+      operationsHash: String,
+      periodKind: String,
+      currentExpectedQuorum: Int,
+      activeProposal: Option[String],
+      baker: String,
+      consumedGas: Int,
+      metaLevel: Long,
+      metaLevelPosition: Long,
+      metaCycle: Int,
+      metaCyclePosition: Int,
+      metaVotingPeriod: Int,
+      metaVotingPeriodPosition: Int,
+      expectedCommitment: Boolean,
+      priority: Int
+  ) extends RPCResponse
+
   case class TransactionsRequest(hashes: Seq[String]) extends RPCRequest
   case class BlockTransactionsRequest(blockLevel: Long) extends RPCRequest
   case class TransactionRequest(hash: String) extends RPCRequest
