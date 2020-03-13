@@ -33,7 +33,7 @@ object Instances {
           a: Ethereum,
           hash: String
       ): IO[ReceiptResponse] = {
-        a.client.request[ReceiptRequest, ReceiptResponse](
+        a.client.post[ReceiptRequest, ReceiptResponse](
           ReceiptRequest(hash)
         )
       }
@@ -45,7 +45,7 @@ object Instances {
           a: Ethereum,
           hashes: Seq[String]
       ): IO[BatchResponse[ReceiptResponse]] = {
-        a.client.request[
+        a.client.post[
           BatchRequest[ReceiptRequest],
           BatchResponse[ReceiptResponse]
         ](
@@ -60,7 +60,7 @@ object Instances {
           a: Ethereum,
           hash: String
       ): IO[BlockWithTransactionsResponse] = {
-        a.client.request[BlockByHashRequest, BlockWithTransactionsResponse](
+        a.client.post[BlockByHashRequest, BlockWithTransactionsResponse](
           BlockByHashRequest(hash, true)
         )
       }
@@ -72,7 +72,7 @@ object Instances {
           a: Ethereum,
           hash: String
       ): IO[BlockResponse] = {
-        a.client.request[BlockByHashRequest, BlockResponse](
+        a.client.post[BlockByHashRequest, BlockResponse](
           BlockByHashRequest(hash, false)
         )
       }
@@ -84,7 +84,7 @@ object Instances {
           a: Ethereum,
           height: Long
       ): IO[BlockWithTransactionsResponse] =
-        a.client.request[BlockByHeightRequest, BlockWithTransactionsResponse](
+        a.client.post[BlockByHeightRequest, BlockWithTransactionsResponse](
           BlockByHeightRequest(height, true)
         )
     }
@@ -95,7 +95,7 @@ object Instances {
           a: Ethereum,
           height: Long
       ): IO[BlockResponse] =
-        a.client.request[BlockByHeightRequest, BlockResponse](
+        a.client.post[BlockByHeightRequest, BlockResponse](
           BlockByHeightRequest(height, false)
         )
     }
@@ -105,7 +105,7 @@ object Instances {
       override def getBestBlockHeight(a: Ethereum): IO[Long] =
         for {
           json <- a.client
-            .requestJson[BestBlockHeightRequest](new BestBlockHeightRequest)
+            .postJson[BestBlockHeightRequest](new BestBlockHeightRequest)
         } yield HexTools
           .parseQuantity(json.asObject.get("result").get.asString.get)
           .toLong
@@ -119,7 +119,7 @@ object Instances {
           a: Ethereum,
           hashes: Seq[String]
       ): IO[BatchResponse[TransactionResponse]] =
-        a.client.request[
+        a.client.post[
           BatchRequest[TransactionRequest],
           BatchResponse[TransactionResponse]
         ](
@@ -133,7 +133,7 @@ object Instances {
           a: Ethereum,
           hash: String
       ): IO[TransactionResponse] =
-        a.client.request[TransactionRequest, TransactionResponse](
+        a.client.post[TransactionRequest, TransactionResponse](
           TransactionRequest(hash)
         )
     }

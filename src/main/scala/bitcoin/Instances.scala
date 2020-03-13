@@ -40,7 +40,7 @@ object Instances {
           a: Bitcoin,
           hash: String
       ): IO[BlockResponse] = {
-        a.client.request[BlockRequest, BlockResponse](BlockRequest(hash))
+        a.client.post[BlockRequest, BlockResponse](BlockRequest(hash))
       }
     }
 
@@ -48,7 +48,7 @@ object Instances {
     override def getBlockHash(a: Bitcoin, height: Long): IO[String] =
       for {
         json <- a.client
-          .requestJson[BlockHashRequest](BlockHashRequest(height))
+          .postJson[BlockHashRequest](BlockHashRequest(height))
       } yield json.asObject.get("result").get.asString.get
   }
 
@@ -69,7 +69,7 @@ object Instances {
       override def getBestBlockHash(a: Bitcoin): IO[String] =
         for {
           json <- a.client
-            .requestJson[BestBlockHashRequest](new BestBlockHashRequest)
+            .postJson[BestBlockHashRequest](new BestBlockHashRequest)
         } yield json.asObject.get("result").get.asString.get
     }
 
@@ -99,7 +99,7 @@ object Instances {
         }
 
         val result =
-          a.client.request[BatchRequest[TransactionRequest], BatchResponse[
+          a.client.post[BatchRequest[TransactionRequest], BatchResponse[
             TransactionResponse
           ]](
             BatchRequest[TransactionRequest](list.map(TransactionRequest.apply).toSeq)
@@ -130,7 +130,7 @@ object Instances {
           hash: String
       ): IO[TransactionResponse] =
         if (hash != Transactions.GenesisTransactionHash) {
-          a.client.request[TransactionRequest, TransactionResponse](
+          a.client.post[TransactionRequest, TransactionResponse](
             TransactionRequest(hash)
           )
         } else {
@@ -141,6 +141,6 @@ object Instances {
   implicit val estimateSmartFeeInstance =
     new EstimateSmartFee[Bitcoin, FeeResponse] {
       override def estimateSmartFee(a: Bitcoin, height: Long): IO[FeeResponse] =
-        a.client.request[FeeRequest, FeeResponse](FeeRequest(height))
+        a.client.post[FeeRequest, FeeResponse](FeeRequest(height))
     }
 }

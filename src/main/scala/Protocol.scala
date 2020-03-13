@@ -38,6 +38,7 @@ case class Config(
     port: Option[Int],
     username: Option[String],
     password: Option[String],
+    zmqHost: Option[String],
     zmqPort: Option[Int]
 )
 
@@ -46,19 +47,21 @@ object Config {
   val UsernameEnv = "BLOCKCHAIN_RPC_USERNAME"
   val HostEnv = "BLOCKCHAIN_RPC_HOSTS"
   val PortEnv = "BLOCKCHAIN_RPC_PORT"
+  val ZMQHostEnv = "BLOCKCHAIN_RPC_ZEROMQ_HOST"
   val ZMQPortEnv = "BLOCKCHAIN_RPC_ZEROMQ_PORT"
 
   val fromEnv: Config = {
-    Seq(HostEnv, PortEnv, UsernameEnv, PasswordEnv, ZMQPortEnv)
+    Seq(HostEnv, PortEnv, UsernameEnv, PasswordEnv, ZMQHostEnv, ZMQPortEnv)
       .map(sys.env.get(_)) match {
-      case Seq(None, _, _, _, _) =>
+      case Seq(None, _, _, _, _, _) =>
         throw new Exception("Pass at least BLOCKCHAIN_RPC_HOSTS.")
-      case Seq(Some(h), port, user, pass, zmqPort) =>
+      case Seq(Some(h), port, user, pass, zmqHost, zmqPort) =>
         Config(
           h.split(",").toIndexedSeq,
           port.map(_.toInt),
           user,
           pass,
+          zmqHost,
           zmqPort.map(_.toInt)
         )
     }
@@ -69,10 +72,17 @@ sealed trait Blockchain
 case class Ethereum(client: RPCClient) extends Blockchain
 case class Bitcoin(client: RPCClient) extends Blockchain
 case class Omni(client: RPCClient) extends Blockchain
+case class Tezos(client: RPCClient, apiKey: String) extends Blockchain
 
 object OmniMethods {
   trait ListBlockTransactions {
     def listBlockTransactions(omni: Omni, height: Long): IO[Seq[String]]
+  }
+}
+
+object TezosMethods {
+  trait GetTransactionsByBlockHeight[A <: Blockchain, B] {
+    def getTransactions(a: A, blockHeight: Long): IO[B]
   }
 }
 

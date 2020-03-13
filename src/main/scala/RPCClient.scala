@@ -25,9 +25,9 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.headers.{Authorization, _}
-import org.http4s.{BasicCredentials, MediaType, Request, Uri}
-
+import org.http4s.{BasicCredentials, Headers, MediaType, Request, Uri}
 import java.net.{ConnectException, SocketTimeoutException}
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -38,13 +38,14 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Bitcoin] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Bitcoin(client)
   }
 
@@ -53,13 +54,14 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Ethereum] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Ethereum(client)
   }
 
@@ -68,14 +70,32 @@ object RPCClient {
       port: Option[Int] = None,
       username: Option[String] = None,
       password: Option[String] = None,
+      zmqHost: Option[String] = None,
       zmqPort: Option[Int] = None,
       onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
   )(
       implicit ec: ExecutionContext,
       cs: ContextShift[IO]
   ): Resource[IO, Omni] = {
-    val config = Config(hosts, port, username, password, zmqPort)
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
     for (client <- make(config, onErrorRetry)) yield Omni(client)
+  }
+
+  def tezosConseil(
+            hosts: Seq[String],
+            port: Option[Int] = None,
+            username: Option[String] = None,
+            password: Option[String] = None,
+            apiKey: String,
+            zmqHost: Option[String] = None,
+            zmqPort: Option[Int] = None,
+            onErrorRetry: (Int, Throwable) => IO[Unit] = (_,_) => IO.unit
+          )(
+            implicit ec: ExecutionContext,
+            cs: ContextShift[IO]
+          ): Resource[IO, Tezos] = {
+    val config = Config(hosts, port, username, password, zmqHost, zmqPort)
+    for (client <- make(config, onErrorRetry)) yield Tezos(client, apiKey)
   }
 
   def make(config: Config, onErrorRetry: (Int, Throwable) => IO[Unit])(
@@ -88,7 +108,7 @@ object RPCClient {
         .withRequestTimeout(2.minutes)
         .resource
       socket <- ZeroMQ.socket(
-        config.hosts.head,
+        config.zmqHost.getOrElse("localhost"),
         config.zmqPort.getOrElse(28332)
       )
     } yield new RPCClient(client, socket, config, onErrorRetry)
@@ -105,45 +125,115 @@ class RPCClient (
   // is blocking
   def nextBlockHash(): IO[String] = zmq.nextBlock()
 
-  def request[A <: RPCRequest: Encoder, B <: RPCResponse: Decoder](
-      request: A
+  def post[A <: RPCRequest: Encoder, B <: RPCResponse: Decoder](
+      request: A,
+      path: Option[String] = None,
+      headers: Headers = Headers.empty
   ): IO[B] = retry(config.hosts) { host =>
     for {
-      req <- post(host, request)
+      req <- post(host, request, path, headers)
       res <- client.expect[B](req)
     } yield res
   }
 
-  def requestJson[A <: RPCRequest: Encoder](request: A): IO[Json] =
+  def get[A <: RPCRequest: Encoder, B <: RPCResponse: Decoder](
+      request: A,
+      path: Option[String] = None,
+      headers: Headers = Headers.empty
+  ): IO[B] = retry(config.hosts) { host =>
+    for {
+      req <- get(host, request, path, headers)
+      res <- client.expect[B](req)
+    } yield res
+  }
+
+  def postJson[A <: RPCRequest: Encoder](
+      request: A,
+      path: Option[String] = None,
+      headers: Headers = Headers.empty
+  ): IO[Json] =
     retry(config.hosts) { host =>
       for {
-        req <- post(host, request)
+        req <- post(host, request, path, headers)
+        res <- client.expect[Json](req)
+      } yield res
+    }
+
+  def getJson[A <: RPCRequest: Encoder](
+      request: A,
+      path: Option[String] = None,
+      headers: Headers = Headers.empty
+  ): IO[Json] =
+    retry(config.hosts) { host =>
+      for {
+        req <- get(host, request, path, headers)
         res <- client.expect[Json](req)
       } yield res
     }
 
   private def post[A <: RPCRequest: Encoder](
       host: String,
-      request: A
+      request: A,
+      path: Option[String],
+      headers: Headers
   ): IO[Request[IO]] = {
-    val uri = Uri
-      .fromString(s"http://${host}:${config.port.getOrElse(8332)}")
-      .getOrElse(throw new Exception("Could not parse URL"))
+    val uri = createUri(host, path)
     (config.username, config.password) match {
       case (Some(user), Some(pass)) =>
         POST(
           request,
           uri,
-          Authorization(BasicCredentials(user, pass)),
-          Accept(MediaType.application.json)
+          (Headers.of(
+            Authorization(BasicCredentials(user, pass)),
+            Accept(MediaType.application.json)
+          ) ++ headers).toList:_*
+          ,
         )
       case _ =>
         POST(
           request,
           uri,
-          Accept(MediaType.application.json)
+          (Headers.of(
+            Accept(MediaType.application.json)
+          ) ++ headers).toList:_*
         )
     }
+  }
+
+  private def get[A <: RPCRequest: Encoder](
+      host: String,
+      request: A,
+      path: Option[String],
+      headers: Headers
+  ): IO[Request[IO]] = {
+    val uri = createUri(host, path)
+    (config.username, config.password) match {
+      case (Some(user), Some(pass)) =>
+        GET(
+          request,
+          uri,
+          (Headers.of(
+            Authorization(BasicCredentials(user, pass)),
+            Accept(MediaType.application.json)
+          ) ++ headers).toList:_*
+          ,
+        )
+      case _ =>
+        GET(
+          request,
+          uri,
+          (Headers.of(
+            Accept(MediaType.application.json)
+          ) ++ headers).toList:_*
+        )
+    }
+  }
+
+  private def createUri(hostOrUri: String, path: Option[String]): Uri = {
+    val stringPath = path.getOrElse("")
+    Uri.fromString(hostOrUri + stringPath).getOrElse(Uri
+      .fromString(s"http://${hostOrUri}:${config.port.getOrElse(8332)}" + stringPath)
+      .getOrElse(throw new Exception("Could not parse URL")))
   }
 
   def retry[A](fallbacks: Seq[String], current: Int = 0, max: Int = 10)(

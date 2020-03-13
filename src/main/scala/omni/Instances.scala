@@ -39,7 +39,7 @@ object Instances {
           height: Long
       ): IO[Seq[String]] =
         for {
-          json <- omni.client.requestJson[BlockTransactionsRequest](
+          json <- omni.client.postJson[BlockTransactionsRequest](
             BlockTransactionsRequest(height)
           )
         } yield json.asObject.get("result").get.asArray.get.map(_.asString.get)
@@ -52,7 +52,7 @@ object Instances {
           hash: String
       ): IO[TransactionResponse] = {
         for {
-          res <- omni.client.request[TransactionRequest, TransactionResponse](
+          res <- omni.client.post[TransactionRequest, TransactionResponse](
             TransactionRequest(hash)
           )
         } yield res
@@ -67,7 +67,7 @@ object Instances {
       ): IO[BatchResponse[TransactionResponse]] =
         for {
           res <- omni.client
-            .request[BatchRequest[TransactionRequest], BatchResponse[
+            .post[BatchRequest[TransactionRequest], BatchResponse[
               TransactionResponse
             ]](
               BatchRequest[TransactionRequest](
@@ -81,7 +81,7 @@ object Instances {
     override def getBlockHash(a: Omni, height: Long): IO[String] =
       for {
         json <- a.client
-          .requestJson[BlockHashRequest](BlockHashRequest(height))
+          .postJson[BlockHashRequest](BlockHashRequest(height))
       } yield json.asObject.get("result").get.asString.get
   }
 
@@ -89,7 +89,7 @@ object Instances {
     override def getBestBlockHash(omni: Omni): IO[String] =
       for {
         json <- omni.client
-          .requestJson[BestBlockHashRequest](new BestBlockHashRequest)
+          .postJson[BestBlockHashRequest](new BestBlockHashRequest)
       } yield json.asObject.get("result").get.asString.get
   }
 
@@ -99,7 +99,7 @@ object Instances {
           a: Omni,
           hash: String
       ): IO[BlockResponse] = {
-        a.client.request[BlockRequest, BlockResponse](BlockRequest(hash))
+        a.client.post[BlockRequest, BlockResponse](BlockRequest(hash))
       }
     }
 

@@ -1,6 +1,6 @@
 lazy val commonSettings = Seq(
   organization := "io.tokenanalyst",
-  version := "2.5.2",
+  version := "2.5.2-scalac",
   scalaVersion := "2.13.1",
   crossScalaVersions := Seq("2.13.1", "2.12.10"),
   organizationHomepage := Some(
@@ -66,8 +66,8 @@ pomExtra :=
       </developer>
     </developers>
 
-val http4sVersion = "0.21.0-M5"
-val circeVersion = "0.12.0-M4"
+val http4sVersion = "0.21.1"
+val circeVersion = "0.13.0"
 val scalaTestVersion = "3.1.0"
 
 lazy val http4s = Seq(
@@ -79,6 +79,7 @@ lazy val http4s = Seq(
 lazy val json = Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-literal" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion
 )

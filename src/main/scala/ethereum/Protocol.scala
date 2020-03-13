@@ -46,7 +46,7 @@ object Protocol {
   type BlockResponse = GenericBlockResponse[String]
 
   case class GenericBlockResponse[A](
-      author: String,
+      author: Option[String],
       difficulty: String,
       extraData: String,
       gasLimit: String,
@@ -59,7 +59,7 @@ object Protocol {
       number: String,
       parentHash: String,
       receiptsRoot: String,
-      sealFields: List[String],
+      sealFields: Option[List[String]],
       sha3Uncles: String,
       size: String,
       stateRoot: String,
@@ -80,12 +80,12 @@ object Protocol {
       hash: String,
       input: String,
       nonce: String,
-      publicKey: String,
+      publicKey: Option[String],
       r: String,
-      raw: String,
+      raw: Option[String],
       s: String,
       v: String,
-      standardV: String,
+      standardV: Option[String],
       to: Option[String],
       transactionIndex: String,
       value: String,
@@ -119,7 +119,7 @@ object Protocol {
       data: String,
       topics: List[String],
       transactionLogIndex: Option[String],
-      `type`: String
+      `type`: Option[String]
   )
 
   case class BlockByHashRequest(hash: String, withTransactions: Boolean)
