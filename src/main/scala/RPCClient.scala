@@ -245,8 +245,10 @@ class RPCClient (
         _ <- onErrorRetry(hostId, e)
         r <- retry(fallbacks, current + 1, max)(f)
       } yield r
-      else
-        IO.raiseError(new Exception(s"Running out of retries for: ${e}"))
+      else e match {
+        case e: org.http4s.client.UnexpectedStatus => IO.raiseError(new Exception(s"Running out of retries for: ${e}. Reason: ${e.status.reason}"))
+        case _ => IO.raiseError(new Exception(s"Running out of retries for: ${e}"))
+      }
     }
     f(fallbacks(hostId)).handleErrorWith {
       case e: org.http4s.client.UnexpectedStatus => handle(e)
