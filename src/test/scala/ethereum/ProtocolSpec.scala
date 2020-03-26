@@ -239,8 +239,8 @@ class ProtocolSpec extends AnyFlatSpec with Matchers {
     val decoded = decode[TransactionResponse](response)
     decoded shouldEqual Right(
       TransactionResponse(
-        "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2",
-        "0x5daf3b",
+        Some("0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"),
+        Some("0x5daf3b"),
         Some("0x1"),
         "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d",
         "0xc350",

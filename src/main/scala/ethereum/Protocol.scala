@@ -71,8 +71,8 @@ object Protocol {
   ) extends RPCResponse
 
   case class TransactionResponse(
-      blockHash: String,
-      blockNumber: String,
+      blockHash: Option[String],
+      blockNumber: Option[String],
       chainId: Option[String],
       from: String,
       gas: String,
