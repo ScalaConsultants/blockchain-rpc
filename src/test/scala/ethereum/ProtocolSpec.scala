@@ -255,7 +255,7 @@ class ProtocolSpec extends AnyFlatSpec with Matchers {
         "0x25",
         Some("0x0"),
         Some("0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"),
-        "0x41",
+        Some("0x41"),
         "0xf3dbb76162000",
         None,
         None

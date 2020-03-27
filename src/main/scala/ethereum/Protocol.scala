@@ -87,7 +87,7 @@ object Protocol {
       v: String,
       standardV: Option[String],
       to: Option[String],
-      transactionIndex: String,
+      transactionIndex: Option[String],
       value: String,
       condition: Option[String],
       creates: Option[String]

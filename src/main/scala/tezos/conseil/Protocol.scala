@@ -53,7 +53,7 @@ object Protocol {
       parameters: Option[String],
       destination: Option[String],
       ballot: Option[String],
-      period: Option[String],
+      period: Option[Int],
       fee: Option[Long],
       level: Option[Long]
    ) extends RPCResponse

@@ -28,6 +28,8 @@ import org.http4s.headers.{Authorization, _}
 import org.http4s.{BasicCredentials, Headers, MediaType, Request, Uri}
 import java.net.{ConnectException, SocketTimeoutException}
 
+import org.http4s.client.middleware.Logger
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -107,11 +109,12 @@ object RPCClient {
         .withConnectTimeout(5.seconds)
         .withRequestTimeout(2.minutes)
         .resource
+      loggedClient = Logger[IO](logBody = true, logHeaders = true)(client)
       socket <- ZeroMQ.socket(
         config.zmqHost.getOrElse("localhost"),
         config.zmqPort.getOrElse(28332)
       )
-    } yield new RPCClient(client, socket, config, onErrorRetry)
+    } yield new RPCClient(loggedClient, socket, config, onErrorRetry)
   }
 }
 
@@ -245,10 +248,8 @@ class RPCClient (
         _ <- onErrorRetry(hostId, e)
         r <- retry(fallbacks, current + 1, max)(f)
       } yield r
-      else e match {
-        case e: org.http4s.client.UnexpectedStatus => IO.raiseError(new Exception(s"Running out of retries for: ${e}. Reason: ${e.status.reason}"))
-        case _ => IO.raiseError(new Exception(s"Running out of retries for: ${e}"))
-      }
+      else
+        IO.raiseError(new Exception(s"Running out of retries for: ${e}"))
     }
     f(fallbacks(hostId)).handleErrorWith {
       case e: org.http4s.client.UnexpectedStatus => handle(e)
