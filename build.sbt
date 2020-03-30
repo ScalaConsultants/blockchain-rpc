@@ -13,14 +13,8 @@ lazy val `blockchain-rpc` = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     assemblyJarName in assembly := "blockchain-rpc.jar",
-    publishMavenStyle := false,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    }
+    publishMavenStyle := true,
+    publishTo := Some("Scalac s3 repo" at "s3://maven.scalac.io")
   )
   .settings(
     libraryDependencies ++= Seq(
