@@ -107,7 +107,8 @@ object RPCClient {
     for {
       client <- BlazeClientBuilder[IO](ec)
         .withConnectTimeout(5.seconds)
-        .withRequestTimeout(2.minutes)
+        .withRequestTimeout(5.minutes)
+        .withIdleTimeout(10.minutes)
         .resource
       loggedClient = Logger[IO](logBody = true, logHeaders = true)(client)
       socket <- ZeroMQ.socket(
