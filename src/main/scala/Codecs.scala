@@ -5,8 +5,16 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
 object Codecs {
   implicit def batchResponse[A <: RPCResponse: Decoder] =
     new Decoder[BatchResponse[A]] {
-      def apply(a: HCursor): Decoder.Result[BatchResponse[A]] =
-        a.as[Seq[A]].map(s => BatchResponse(s))
+      def apply(a: HCursor): Decoder.Result[BatchResponse[A]] = {
+        val filteredBatch = a.withFocus { batchJson =>
+          batchJson.withArray { batchElements =>
+            Json.fromValues(
+              batchElements.filter(!_.hcursor.downField("result").focus.get.isNull)
+            )
+          }
+        }
+        filteredBatch.as[Seq[A]].map(s => BatchResponse(s))
+      }
     }
 
   implicit def deriveCirceDecoder[A <: RPCResponse: Decoder] = new Decoder[A] {
