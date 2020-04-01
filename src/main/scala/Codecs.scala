@@ -9,7 +9,10 @@ object Codecs {
         val filteredBatch = a.withFocus { batchJson =>
           batchJson.withArray { batchElements =>
             Json.fromValues(
-              batchElements.filter(!_.hcursor.downField("result").focus.get.isNull)
+              batchElements.filter { elem =>
+                val result = elem.hcursor.downField("result").focus
+                result.isEmpty || (result.isDefined && !result.get.isNull)
+              }
             )
           }
         }
