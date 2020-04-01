@@ -14,6 +14,7 @@ lazy val `blockchain-rpc` = (project in file("."))
   .settings(
     assemblyJarName in assembly := "blockchain-rpc.jar",
     publishMavenStyle := true,
+    publishConfiguration := publishConfiguration.value.withOverwrite(true),
     publishTo := Some("Scalac s3 repo" at "s3://maven.scalac.io")
   )
   .settings(
